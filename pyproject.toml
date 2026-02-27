@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fear-protocol"
+version = "0.1.0"
+description = "Exchange-agnostic sentiment-driven DCA framework"
+authors = [{name = "ClawInfra", email = "alex.chen31337@gmail.com"}]
+license = {text = "MIT"}
+requires-python = ">=3.11"
+readme = "README.md"
+
+dependencies = [
+    "requests>=2.31",
+    "typer>=0.12",
+    "rich>=13",
+    "pydantic>=2",
+    "python-dateutil>=2.8",
+]
+
+[project.optional-dependencies]
+hyperliquid = ["hyperliquid-python-sdk>=0.5", "eth-account>=0.13"]
+binance = ["python-binance>=1.0"]
+docs = ["mkdocs-material>=9", "mkdocstrings[python]>=0.24"]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.4",
+    "pyright>=1.1",
+    "pytest-mock>=3.14",
+]
+
+[project.scripts]
+fear-protocol = "fear_protocol.cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fear_protocol"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--tb=short -q"
+
+[tool.coverage.run]
+source = ["fear_protocol"]
+omit = [
+    "*/tests/*",
+    "fear_protocol/cli/*",
+    "fear_protocol/exchanges/hyperliquid.py",
+    "fear_protocol/data/historical.py",
+    "fear_protocol/agent/api.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true

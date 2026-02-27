@@ -1,0 +1,1 @@
+"""CLI for fear-protocol."""
