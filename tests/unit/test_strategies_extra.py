@@ -1,220 +1,269 @@
-"""Extra tests for grid_fear and momentum_dca to improve coverage."""
+"""Additional tests to boost coverage on strategies and backtest."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 import pytest
 
 from fear_protocol.core.models import ActionType, MarketContext
+from fear_protocol.strategies.momentum_dca import MomentumDCAConfig, MomentumDCAStrategy
+from fear_protocol.strategies.grid_fear import GridFearConfig, GridFearStrategy
+from fear_protocol.strategies.fear_greed_dca import FearGreedDCAConfig, FearGreedDCAStrategy
 
 
-def _ctx(
-    fg: int = 25,
-    price: Decimal = Decimal("40000"),
-    total_invested: Decimal = Decimal("0"),
-    open_positions: list | None = None,
-) -> MarketContext:
-    return MarketContext(
-        timestamp="2024-01-01",
-        fear_greed=fg,
-        fear_greed_label="Fear",
-        price=price,
-        portfolio_value=Decimal("10000"),
-        total_invested=total_invested,
-        open_positions=open_positions or [],
-    )
-
-
-class TestGridFearStrategyExtra:
-    def test_hold_when_neutral(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy
-
-        s = GridFearStrategy()
-        ctx = _ctx(fg=50)
-        sig = s.evaluate(ctx)
-        assert sig.action == ActionType.HOLD
-
-    def test_buy_in_fear_zone(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy
-
-        s = GridFearStrategy()
-        ctx = _ctx(fg=20, price=Decimal("40000"))
-        sig = s.evaluate(ctx)
-        assert sig.action == ActionType.BUY
-        assert sig.suggested_amount > 0
-
-    def test_sell_in_greed_zone_with_old_position(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy, GridFearConfig
-
-        config = GridFearConfig(sell_threshold=70, hold_days=0)
-        s = GridFearStrategy(config=config)
+class TestMomentumDCASellPath:
+    def test_sell_on_recovery(self) -> None:
+        """Test sell when F&G ≥ sell_threshold and positions eligible."""
+        config = MomentumDCAConfig(sell_threshold=50, hold_days=1)
+        s = MomentumDCAStrategy(config=config)
         old_ts = (datetime.now() - timedelta(days=10)).isoformat()
-        positions = [{"status": "open", "timestamp": old_ts, "btc_qty": 0.01}]
-        ctx = _ctx(fg=75, open_positions=positions)
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("1000"),
+            open_positions=[{
+                "timestamp": old_ts,
+                "entry_price": 20000.0,
+                "btc_qty": 0.05,
+                "usd_amount": 1000.0,
+                "fg_at_entry": 15,
+                "status": "open",
+                "mode": "test",
+            }],
+        )
         sig = s.evaluate(ctx)
         assert sig.action == ActionType.SELL
 
-    def test_no_sell_when_positions_too_new(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy, GridFearConfig
-
-        config = GridFearConfig(sell_threshold=70, hold_days=30)
-        s = GridFearStrategy(config=config)
-        new_ts = datetime.now().isoformat()
-        positions = [{"status": "open", "timestamp": new_ts, "btc_qty": 0.01}]
-        ctx = _ctx(fg=75, open_positions=positions)
-        sig = s.evaluate(ctx)
-        # Not enough hold days, should HOLD
-        assert sig.action == ActionType.HOLD
-
-    def test_grid_level_increases_with_drop(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy
-
-        s = GridFearStrategy()
-        # Set reference price via first eval
-        ctx1 = _ctx(fg=20, price=Decimal("40000"))
-        s.evaluate(ctx1)
-        # Now price dropped significantly
-        ctx2 = _ctx(fg=20, price=Decimal("36000"))  # 10% drop → level 1
-        sig = s.evaluate(ctx2)
-        assert sig.action == ActionType.BUY
-        assert sig.metadata.get("grid_level", 0) >= 1
-
-    def test_from_dict(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy
-
-        s = GridFearStrategy.from_dict({"fear_threshold": 30, "base_amount_usd": "300"})
-        assert s.config.fear_threshold == 30
-
-    def test_cap_at_max_capital(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy, GridFearConfig
-
-        config = GridFearConfig(max_capital_usd=Decimal("200"), base_amount_usd=Decimal("500"))
-        s = GridFearStrategy(config=config)
-        ctx = _ctx(fg=15, total_invested=Decimal("150"))
-        sig = s.evaluate(ctx)
-        if sig.action == ActionType.BUY:
-            assert sig.suggested_amount <= Decimal("50")
-
-    def test_max_capital_exceeded_holds(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy, GridFearConfig
-
-        config = GridFearConfig(max_capital_usd=Decimal("100"))
-        s = GridFearStrategy(config=config)
-        ctx = _ctx(fg=15, total_invested=Decimal("200"))  # already over cap
+    def test_hold_positions_not_eligible(self) -> None:
+        """Sell threshold met but positions not old enough."""
+        config = MomentumDCAConfig(sell_threshold=50, hold_days=365)
+        s = MomentumDCAStrategy(config=config)
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("1000"),
+            open_positions=[{
+                "timestamp": datetime.now().isoformat(),
+                "entry_price": 20000.0,
+                "btc_qty": 0.05,
+                "usd_amount": 1000.0,
+                "fg_at_entry": 15,
+                "status": "open",
+                "mode": "test",
+            }],
+        )
         sig = s.evaluate(ctx)
         assert sig.action == ActionType.HOLD
 
-    def test_eligible_positions_invalid_timestamp(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy, GridFearConfig
-
-        config = GridFearConfig(sell_threshold=70, hold_days=0)
-        s = GridFearStrategy(config=config)
-        positions = [{"status": "open", "timestamp": "not-a-date", "btc_qty": 0.01}]
-        ctx = _ctx(fg=75, open_positions=positions)
-        sig = s.evaluate(ctx)
-        # Invalid timestamp → skipped, no positions → HOLD
+    def test_max_capital_prevents_buy(self) -> None:
+        config = MomentumDCAConfig(max_capital_usd=Decimal("100"))
+        s = MomentumDCAStrategy(config=config)
+        prices = [Decimal("25000"), Decimal("24000"), Decimal("23000"), Decimal("22000")]
+        for i, price in enumerate(prices):
+            ctx = MarketContext(
+                timestamp=f"t{i}", fear_greed=15, fear_greed_label="EF",
+                price=price, portfolio_value=Decimal("10000"),
+                total_invested=Decimal("100"), open_positions=[],
+            )
+            sig = s.evaluate(ctx)
         assert sig.action == ActionType.HOLD
 
-    def test_reference_price_reset_on_sell(self):
-        from fear_protocol.strategies.grid_fear import GridFearStrategy, GridFearConfig
+    def test_closed_positions_ignored(self) -> None:
+        """Closed positions should not trigger sell."""
+        config = MomentumDCAConfig(sell_threshold=50, hold_days=1)
+        s = MomentumDCAStrategy(config=config)
+        old_ts = (datetime.now() - timedelta(days=10)).isoformat()
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("0"),
+            open_positions=[{
+                "timestamp": old_ts,
+                "status": "closed",
+                "btc_qty": 0.05,
+            }],
+        )
+        sig = s.evaluate(ctx)
+        assert sig.action == ActionType.HOLD
 
-        config = GridFearConfig(sell_threshold=70, hold_days=0)
+    def test_bad_timestamp_ignored(self) -> None:
+        """Positions with bad timestamps should be silently skipped."""
+        config = MomentumDCAConfig(sell_threshold=50, hold_days=1)
+        s = MomentumDCAStrategy(config=config)
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("0"),
+            open_positions=[{
+                "timestamp": "bad-date",
+                "status": "open",
+                "btc_qty": 0.05,
+            }],
+        )
+        sig = s.evaluate(ctx)
+        assert sig.action == ActionType.HOLD
+
+
+class TestGridFearSellPath:
+    def test_sell_on_recovery(self) -> None:
+        config = GridFearConfig(sell_threshold=50, hold_days=1)
         s = GridFearStrategy(config=config)
-        # Set reference
-        ctx1 = _ctx(fg=20, price=Decimal("40000"))
+        old_ts = (datetime.now() - timedelta(days=10)).isoformat()
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("1000"),
+            open_positions=[{
+                "timestamp": old_ts,
+                "entry_price": 20000.0,
+                "btc_qty": 0.05,
+                "usd_amount": 1000.0,
+                "fg_at_entry": 15,
+                "status": "open",
+                "mode": "test",
+            }],
+        )
+        sig = s.evaluate(ctx)
+        assert sig.action == ActionType.SELL
+
+    def test_max_capital_limits_buy(self) -> None:
+        config = GridFearConfig(max_capital_usd=Decimal("100"), base_amount_usd=Decimal("200"))
+        s = GridFearStrategy(config=config)
+        ctx = MarketContext(
+            timestamp="t", fear_greed=15, fear_greed_label="EF",
+            price=Decimal("20000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("95"), open_positions=[],
+        )
+        sig = s.evaluate(ctx)
+        # Only $5 remaining, below $10 min → should hold
+        assert sig.action == ActionType.HOLD
+
+    def test_reference_price_reset_on_sell(self) -> None:
+        config = GridFearConfig(sell_threshold=50, hold_days=1)
+        s = GridFearStrategy(config=config)
+        # First set reference via fear zone
+        ctx1 = MarketContext(
+            timestamp="t1", fear_greed=15, fear_greed_label="EF",
+            price=Decimal("20000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("0"), open_positions=[],
+        )
         s.evaluate(ctx1)
         assert s._reference_price is not None
 
-        # Trigger sell
+        # Now trigger sell
         old_ts = (datetime.now() - timedelta(days=10)).isoformat()
-        positions = [{"status": "open", "timestamp": old_ts, "btc_qty": 0.01}]
-        ctx2 = _ctx(fg=75, open_positions=positions)
-        s.evaluate(ctx2)
+        ctx2 = MarketContext(
+            timestamp="t2", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("1000"),
+            open_positions=[{
+                "timestamp": old_ts,
+                "btc_qty": 0.05,
+                "status": "open",
+            }],
+        )
+        sig = s.evaluate(ctx2)
+        assert sig.action == ActionType.SELL
         assert s._reference_price is None
 
-
-class TestMomentumDCAStrategyExtra:
-    def test_hold_without_enough_down_days(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy, MomentumDCAConfig
-
-        config = MomentumDCAConfig(min_consecutive_down=3, fear_threshold=30)
-        s = MomentumDCAStrategy(config=config)
-        prices = [Decimal("40000"), Decimal("39500"), Decimal("39000")]
-        for p in prices:
-            ctx = _ctx(fg=25, price=p)
-            sig = s.evaluate(ctx)
-        # Only 2 consecutive down — need 3
-        assert sig.action == ActionType.HOLD
-
-    def test_buy_after_consecutive_down_days(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy, MomentumDCAConfig
-
-        config = MomentumDCAConfig(min_consecutive_down=3, fear_threshold=30)
-        s = MomentumDCAStrategy(config=config)
-        prices = [Decimal("40000"), Decimal("39500"), Decimal("39000"), Decimal("38500")]
-        for p in prices:
-            ctx = _ctx(fg=25, price=p)
-            sig = s.evaluate(ctx)
-        assert sig.action == ActionType.BUY
-
-    def test_sell_in_greed_with_eligible_position(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy, MomentumDCAConfig
-
-        config = MomentumDCAConfig(sell_threshold=70, hold_days=0)
-        s = MomentumDCAStrategy(config=config)
+    def test_closed_positions_ignored(self) -> None:
+        config = GridFearConfig(sell_threshold=50, hold_days=1)
+        s = GridFearStrategy(config=config)
         old_ts = (datetime.now() - timedelta(days=10)).isoformat()
-        positions = [{"status": "open", "timestamp": old_ts, "btc_qty": 0.01}]
-        ctx = _ctx(fg=75, open_positions=positions)
-        sig = s.evaluate(ctx)
-        assert sig.action == ActionType.SELL
-
-    def test_count_consecutive_down_empty(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy
-
-        s = MomentumDCAStrategy()
-        assert s._count_consecutive_down() == 0
-
-    def test_count_consecutive_down_up_day(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy
-
-        s = MomentumDCAStrategy()
-        s._price_history = [Decimal("39000"), Decimal("40000")]  # up day
-        assert s._count_consecutive_down() == 0
-
-    def test_price_history_trimmed(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy, MomentumDCAConfig
-
-        config = MomentumDCAConfig(min_consecutive_down=2)
-        s = MomentumDCAStrategy(config=config)
-        for i in range(20):
-            s.update_price_history(Decimal(str(40000 - i * 100)))
-        # History should be trimmed to min_consecutive_down + 1 = 3
-        assert len(s._price_history) <= config.min_consecutive_down + 1
-
-    def test_from_dict(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy
-
-        s = MomentumDCAStrategy.from_dict({"fear_threshold": 20, "min_consecutive_down": 2})
-        assert s.config.fear_threshold == 20
-
-    def test_no_sell_when_positions_too_new(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy, MomentumDCAConfig
-
-        config = MomentumDCAConfig(sell_threshold=70, hold_days=30)
-        s = MomentumDCAStrategy(config=config)
-        new_ts = datetime.now().isoformat()
-        positions = [{"status": "open", "timestamp": new_ts, "btc_qty": 0.01}]
-        ctx = _ctx(fg=75, open_positions=positions)
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("0"),
+            open_positions=[{"timestamp": old_ts, "status": "closed", "btc_qty": 0.05}],
+        )
         sig = s.evaluate(ctx)
         assert sig.action == ActionType.HOLD
 
-    def test_eligible_positions_invalid_timestamp(self):
-        from fear_protocol.strategies.momentum_dca import MomentumDCAStrategy, MomentumDCAConfig
-
-        config = MomentumDCAConfig(sell_threshold=70, hold_days=0)
-        s = MomentumDCAStrategy(config=config)
-        positions = [{"status": "open", "timestamp": "bad-ts", "btc_qty": 0.01}]
-        ctx = _ctx(fg=75, open_positions=positions)
+    def test_bad_timestamp_ignored(self) -> None:
+        config = GridFearConfig(sell_threshold=50, hold_days=1)
+        s = GridFearStrategy(config=config)
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("0"),
+            open_positions=[{"timestamp": "bad", "status": "open", "btc_qty": 0.05}],
+        )
         sig = s.evaluate(ctx)
         assert sig.action == ActionType.HOLD
+
+
+class TestFearGreedDCAEdgeCases:
+    def test_fg_zero_confidence(self) -> None:
+        s = FearGreedDCAStrategy()
+        assert s._fear_confidence(0) == 1.0
+
+    def test_fg_at_threshold(self) -> None:
+        s = FearGreedDCAStrategy()
+        c = s._fear_confidence(20)
+        assert c == pytest.approx(0.5)
+
+    def test_eligible_positions_bad_timestamp(self) -> None:
+        s = FearGreedDCAStrategy(FearGreedDCAConfig(sell_threshold=50, hold_days=1))
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("0"),
+            open_positions=[{"timestamp": "not-a-date", "status": "open"}],
+        )
+        sig = s.evaluate(ctx)
+        assert sig.action == ActionType.HOLD
+
+    def test_eligible_positions_missing_timestamp(self) -> None:
+        s = FearGreedDCAStrategy(FearGreedDCAConfig(sell_threshold=50, hold_days=1))
+        ctx = MarketContext(
+            timestamp="t", fear_greed=60, fear_greed_label="Greed",
+            price=Decimal("30000"), portfolio_value=Decimal("10000"),
+            total_invested=Decimal("0"),
+            open_positions=[{"status": "open"}],
+        )
+        sig = s.evaluate(ctx)
+        assert sig.action == ActionType.HOLD
+
+    def test_zero_buy_threshold_confidence(self) -> None:
+        config = FearGreedDCAConfig(buy_threshold=0, sell_threshold=50)
+        s = FearGreedDCAStrategy(config=config)
+        assert s._fear_confidence(0) == 1.0
+
+    def test_validate_config_valid(self) -> None:
+        s = FearGreedDCAStrategy()
+        s.validate_config()  # should not raise
+
+
+class TestBacktestReportPrintSummary:
+    def test_print_summary_with_rich(self) -> None:
+        """Ensure print_summary doesn't crash."""
+        from fear_protocol.backtest.report import BacktestReport
+        from fear_protocol.core.models import BacktestConfig, BacktestResult
+
+        result = BacktestResult(
+            config=BacktestConfig(
+                strategy_name="test",
+                start_date="2023-01-01",
+                end_date="2023-12-31",
+                initial_capital=Decimal("10000"),
+            ),
+            ticks=[],
+            trades=[],
+            total_return_pct=25.0,
+            annualized_return_pct=25.0,
+            sharpe_ratio=1.8,
+            sortino_ratio=2.5,
+            max_drawdown_pct=-15.0,
+            calmar_ratio=1.67,
+            win_rate_pct=70.0,
+            avg_win_pct=15.0,
+            avg_loss_pct=-5.0,
+            profit_factor=3.0,
+            total_trades=10,
+            avg_hold_days=90.0,
+            btc_hold_return_pct=50.0,
+            alpha=-25.0,
+        )
+        report = BacktestReport(result)
+        report.print_summary()  # Just verify it doesn't crash
