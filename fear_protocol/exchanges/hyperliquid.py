@@ -16,7 +16,7 @@ UBTC_PAIR = "@142"
 UBTC_SZ_DECIMALS = 5
 UBTC_PX_DECIMALS = 0
 
-HL_ENV_PATH = Path("/home/bowen/.openclaw/skills/hyperliquid/.env")
+HL_ENV_PATH = Path.home() / ".openclaw/skills/hyperliquid/.env"
 
 
 def load_hl_credentials() -> tuple[str | None, str | None]:
