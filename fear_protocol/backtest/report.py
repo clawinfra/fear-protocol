@@ -74,6 +74,23 @@ class BacktestReport:
         lines.append(f"\n**Verdict:** Sharpe {d['sharpe_ratio']:.2f} → {verdict}")
         return "\n".join(lines)
 
+    def to_html(self) -> str:
+        """Return a minimal HTML report string."""
+        d = self.result.to_dict()
+        rows = "".join(
+            f"<tr><td>{k}</td><td>{v}</td></tr>"
+            for k, v in d.items()
+            if k != "trades"
+        )
+        return (
+            f"<html><head><title>fear-protocol backtest</title></head>"
+            f"<body><h1>fear-protocol Backtest: {d['strategy']}</h1>"
+            f"<p>{d['start_date']} → {d['end_date']}</p>"
+            f"<table>{rows}</table>"
+            f"<p>Total Return: {d['total_return_pct']:+.1f}%</p>"
+            f"</body></html>"
+        )
+
     def print_summary(self) -> None:
         """Print Rich terminal table output."""
         try:

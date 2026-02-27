@@ -73,3 +73,14 @@ class TestBacktestReport:
     def test_print_summary_no_error(self, capsys):
         # Should not raise even without Rich
         self.report.print_summary()
+
+    def test_to_html_returns_string(self):
+        html = self.report.to_html()
+        assert "<html" in html
+        assert "fear-protocol" in html.lower()
+
+    def test_to_html_includes_metrics(self):
+        html = self.report.to_html()
+        d = self.report.to_dict()
+        assert "total_return_pct" in html
+        assert str(d["strategy"]) in html

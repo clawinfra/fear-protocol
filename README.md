@@ -34,7 +34,7 @@ fear_protocol/
 ├── core/           ← pure domain logic (models, math)
 ├── data/           ← data providers (fear/greed, prices, historical)
 ├── strategies/     ← pluggable strategies
-├── exchanges/      ← exchange adapters (HL, Binance, Mock, Paper)
+├── exchanges/      ← exchange adapters (HL, Mock, Paper; Binance coming Phase 2)
 ├── backtest/       ← backtesting engine
 ├── state/          ← position & portfolio state
 ├── agent/          ← agent integration (async API, JSON-RPC)
@@ -56,7 +56,37 @@ fear_protocol/
 | `mock` | Deterministic | For backtesting & tests |
 | `paper` | Paper trading | Real prices, simulated fills |
 | `hyperliquid` | Live | UBTC/USDC spot |
-| `binance` | Live | BTC/USDT spot |
+| `binance` | Coming soon | BTC/USDT spot |
+
+> **Note:** Binance adapter planned for Phase 2.
+
+### JSON Output
+All commands support `--json` for machine-readable output (ideal for agent integration):
+
+```bash
+fear-protocol signal --json
+fear-protocol status --json
+fear-protocol backtest run --start 2024-01-01 --end 2024-12-31 --json
+```
+
+## Configuration
+
+Create `fear-protocol.toml` in your project root (or pass via `--config`):
+
+```toml
+[strategy]
+name = "fear-greed-dca"
+dca_amount = 100.0
+fear_threshold = 30
+greed_threshold = 70
+
+[exchange]
+name = "paper"
+initial_balance = 10000.0
+
+[agent]
+mode = "dry-run"
+```
 
 ## Agent Integration
 

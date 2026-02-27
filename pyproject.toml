@@ -60,7 +60,6 @@ omit = [
     "fear_protocol/cli/*",
     "fear_protocol/exchanges/hyperliquid.py",
     "fear_protocol/data/historical.py",
-    "fear_protocol/agent/api.py",
 ]
 
 [tool.coverage.report]

@@ -84,6 +84,14 @@ class TestBacktestEngineBasic:
         fg, prices = _make_data()
         ticks = list(engine.run_streaming(fg_data=fg, price_data=prices))
         assert len(ticks) == 10
+        assert ticks[0].date is not None
+
+    def test_run_streaming_empty_data(self) -> None:
+        config = _make_config()
+        strategy = FearGreedDCAStrategy()
+        engine = BacktestEngine(config=config, strategy=strategy)
+        ticks = list(engine.run_streaming(fg_data={}, price_data={}))
+        assert ticks == []
 
     def test_run_no_overlap_data(self) -> None:
         config = _make_config()
