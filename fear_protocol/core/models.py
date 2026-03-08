@@ -3,11 +3,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ActionType(str, Enum):
+class ActionType(StrEnum):
     """Possible strategy actions."""
 
     BUY = "BUY"
