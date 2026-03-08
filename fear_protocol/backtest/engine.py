@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from collections.abc import Iterator
+from datetime import datetime
 from decimal import Decimal
-from typing import Iterator
 
+from fear_protocol.core import math as fp_math
 from fear_protocol.core.models import (
     ActionType,
     BacktestConfig,
@@ -14,7 +15,6 @@ from fear_protocol.core.models import (
     MarketContext,
     OrderResult,
 )
-from fear_protocol.core import math as fp_math
 from fear_protocol.exchanges.mock import MockAdapter
 from fear_protocol.strategies.base import AbstractStrategy
 

@@ -9,7 +9,6 @@ from pathlib import Path
 
 import requests
 
-
 CACHE_DIR = Path.home() / ".fear-protocol" / "cache"
 CACHE_TTL = 86400  # 24 hours
 

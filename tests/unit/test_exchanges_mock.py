@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
 from fear_protocol.exchanges.mock import MockAdapter
 
 

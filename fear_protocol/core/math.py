@@ -143,7 +143,7 @@ def profit_factor(wins: list[float], losses: list[float]) -> float:
         Profit factor, or 0.0 if no losses.
     """
     gross_profit = sum(w for w in wins if w > 0)
-    gross_loss = sum(abs(l) for l in losses if l < 0)
+    gross_loss = sum(abs(loss) for loss in losses if loss < 0)
     if gross_loss == 0:
         return float("inf") if gross_profit > 0 else 0.0
     return gross_profit / gross_loss

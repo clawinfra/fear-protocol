@@ -5,7 +5,6 @@ import json
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Optional
 
 import typer
 
@@ -22,7 +21,7 @@ def backtest_cmd(
     hold_days: int = typer.Option(120, help="Hold period in days"),
     fee: float = typer.Option(0.001, help="Fee rate"),
     slippage: float = typer.Option(0.001, help="Slippage rate"),
-    output: Optional[Path] = typer.Option(None, help="Save JSON results to file"),
+    output: Path | None = typer.Option(None, help="Save JSON results to file"),
     output_json: bool = typer.Option(False, "--json", help="Output JSON to stdout"),
 ) -> None:
     """Backtest a strategy on historical data."""

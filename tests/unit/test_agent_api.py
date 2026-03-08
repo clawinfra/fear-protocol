@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any
 
 import pytest
 
@@ -67,5 +66,5 @@ class TestFromConfig:
         assert agent.mode == "dry-run"
 
     def test_from_config_invalid_mode(self) -> None:
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError, AttributeError)):
             FearProtocolAgent.from_config({"mode": "invalid-mode"})

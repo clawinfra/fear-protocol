@@ -4,11 +4,11 @@ from __future__ import annotations
 import pytest
 
 from fear_protocol.strategies import (
-    get_strategy,
     STRATEGIES,
     FearGreedDCAStrategy,
-    MomentumDCAStrategy,
     GridFearStrategy,
+    MomentumDCAStrategy,
+    get_strategy,
 )
 
 

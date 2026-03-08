@@ -6,9 +6,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from fear_protocol.data.price import MockPriceProvider, BinancePriceProvider
-from fear_protocol.data.fear_greed import FearGreedProvider
 from fear_protocol.data.base import AbstractDataProvider
+from fear_protocol.data.fear_greed import FearGreedProvider
+from fear_protocol.data.price import BinancePriceProvider, MockPriceProvider
 
 
 class TestMockPriceProvider:

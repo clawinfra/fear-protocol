@@ -120,7 +120,7 @@ class Position:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Position":
+    def from_dict(cls, data: dict[str, Any]) -> Position:
         """Deserialize from dict."""
         return cls(
             timestamp=data["timestamp"],

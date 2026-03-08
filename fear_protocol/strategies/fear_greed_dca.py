@@ -199,7 +199,7 @@ class FearGreedDCAStrategy(AbstractStrategy):
         return eligible
 
     @classmethod
-    def from_dict(cls, params: dict[str, Any]) -> "FearGreedDCAStrategy":
+    def from_dict(cls, params: dict[str, Any]) -> FearGreedDCAStrategy:
         """
         Create strategy from a parameter dict.
 

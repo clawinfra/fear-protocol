@@ -1,7 +1,7 @@
 """Pydantic schemas for agent I/O."""
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -37,8 +37,8 @@ class ExecuteResultSchema(BaseModel):
     timestamp: str
     action: str
     success: bool
-    fill: Optional[OrderFillSchema] = None
-    error: Optional[str] = None
+    fill: OrderFillSchema | None = None
+    error: str | None = None
     dry_run: bool = False
     mode: str = "paper"
 

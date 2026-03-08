@@ -1,7 +1,6 @@
 """Tests for core.math financial utilities."""
 from __future__ import annotations
 
-import math
 from decimal import Decimal
 
 import pytest

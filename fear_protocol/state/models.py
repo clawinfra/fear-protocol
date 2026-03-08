@@ -35,7 +35,7 @@ class ExecutorState:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ExecutorState":
+    def from_dict(cls, data: dict[str, Any]) -> ExecutorState:
         """Deserialize from dict."""
         return cls(
             version=data.get("version", 2),

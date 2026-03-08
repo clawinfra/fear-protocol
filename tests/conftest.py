@@ -1,12 +1,12 @@
 """Shared test fixtures for fear-protocol."""
 from __future__ import annotations
 
-from decimal import Decimal
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 import pytest
 
-from fear_protocol.core.models import MarketContext, Position
+from fear_protocol.core.models import MarketContext
 
 
 @pytest.fixture

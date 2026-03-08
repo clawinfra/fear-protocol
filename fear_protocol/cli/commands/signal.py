@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import time
-from typing import Optional
 
 import typer
 
@@ -18,9 +17,9 @@ def signal_cmd(
     interval: int = typer.Option(300, help="Watch interval in seconds"),
 ) -> None:
     """Check current Fear & Greed index and signal."""
+    from fear_protocol.cli.output import print_signal
     from fear_protocol.data.fear_greed import FearGreedProvider
     from fear_protocol.data.price import BinancePriceProvider
-    from fear_protocol.cli.output import print_signal
 
     def _fetch_and_print() -> None:
         fg_provider = FearGreedProvider()

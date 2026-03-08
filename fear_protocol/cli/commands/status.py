@@ -16,8 +16,8 @@ def status_cmd(
 ) -> None:
     """Show current positions, balances, and P&L."""
     from fear_protocol.cli.output import print_status
-    from fear_protocol.state.manager import StateManager
     from fear_protocol.data.price import BinancePriceProvider
+    from fear_protocol.state.manager import StateManager
 
     manager = StateManager(exchange=exchange, mode=mode)
     state = manager.load()

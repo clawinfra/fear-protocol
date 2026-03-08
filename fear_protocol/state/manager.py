@@ -7,7 +7,6 @@ from typing import Any
 
 from fear_protocol.state.models import ExecutorState
 
-
 DEFAULT_STATE_DIR = Path.home() / ".fear-protocol" / "state"
 
 

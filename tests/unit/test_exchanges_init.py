@@ -1,10 +1,11 @@
 """Tests for exchanges __init__ get_adapter."""
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
-from fear_protocol.exchanges import get_adapter, MockAdapter, PaperAdapter
-from decimal import Decimal
+from fear_protocol.exchanges import MockAdapter, PaperAdapter, get_adapter
 
 
 class TestGetAdapter:
@@ -33,7 +34,6 @@ class TestGetAdapter:
     def test_hyperliquid_import(self):
         """Hyperliquid adapter is importable even if not configured."""
         # Just test that get_adapter tries to import it (will raise if HL not configured)
-        try:
-            get_adapter("hyperliquid")
-        except (ValueError, ImportError, Exception):
-            pass  # expected — HL needs credentials
+        import contextlib
+        with contextlib.suppress(ValueError, ImportError, Exception):
+            get_adapter("hyperliquid")  # expected to raise — HL needs credentials

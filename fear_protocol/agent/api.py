@@ -195,7 +195,7 @@ class FearProtocolAgent:
         return result.to_dict()
 
     @classmethod
-    def from_config(cls, config: dict[str, Any]) -> "FearProtocolAgent":
+    def from_config(cls, config: dict[str, Any]) -> FearProtocolAgent:
         """
         Create agent from config dict (RunConfigSchema-compatible).
 

@@ -1,15 +1,15 @@
 """Additional tests to boost coverage on strategies and backtest."""
 from __future__ import annotations
 
-from decimal import Decimal
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 import pytest
 
 from fear_protocol.core.models import ActionType, MarketContext
-from fear_protocol.strategies.momentum_dca import MomentumDCAConfig, MomentumDCAStrategy
-from fear_protocol.strategies.grid_fear import GridFearConfig, GridFearStrategy
 from fear_protocol.strategies.fear_greed_dca import FearGreedDCAConfig, FearGreedDCAStrategy
+from fear_protocol.strategies.grid_fear import GridFearConfig, GridFearStrategy
+from fear_protocol.strategies.momentum_dca import MomentumDCAConfig, MomentumDCAStrategy
 
 
 class TestMomentumDCASellPath:

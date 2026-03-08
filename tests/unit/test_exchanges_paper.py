@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from unittest.mock import patch, MagicMock
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from fear_protocol.exchanges.paper import PaperAdapter
 

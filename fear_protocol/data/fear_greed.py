@@ -6,7 +6,6 @@ from typing import Any
 
 import requests
 
-
 ALTERNATIVE_ME_URL = "https://api.alternative.me/fng/"
 
 

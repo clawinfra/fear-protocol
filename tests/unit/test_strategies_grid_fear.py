@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
 from fear_protocol.core.models import ActionType, MarketContext
 from fear_protocol.strategies.grid_fear import GridFearConfig, GridFearStrategy
 

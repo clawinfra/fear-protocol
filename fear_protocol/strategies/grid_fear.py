@@ -164,7 +164,7 @@ class GridFearStrategy(AbstractStrategy):
         return eligible
 
     @classmethod
-    def from_dict(cls, params: dict[str, Any]) -> "GridFearStrategy":
+    def from_dict(cls, params: dict[str, Any]) -> GridFearStrategy:
         """Create strategy from parameter dict."""
         config = GridFearConfig(
             fear_threshold=params.get("fear_threshold", 25),

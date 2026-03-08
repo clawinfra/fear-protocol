@@ -38,7 +38,7 @@ class AbstractStrategy(ABC):
             StrategySignal with action, confidence, reason, and amount.
         """
 
-    def on_fill(self, order_result: OrderResult, ctx: MarketContext) -> None:
+    def on_fill(self, order_result: OrderResult, ctx: MarketContext) -> None:  # noqa: B027
         """
         Called after an order is filled. Override for stateful strategies.
 
@@ -47,5 +47,5 @@ class AbstractStrategy(ABC):
             ctx: Market context at the time of fill.
         """
 
-    def validate_config(self) -> None:
+    def validate_config(self) -> None:  # noqa: B027
         """Validate strategy config. Raise ValueError if invalid."""

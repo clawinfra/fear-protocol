@@ -1,7 +1,7 @@
 """MomentumDCA strategy — DCA after consecutive red days + fear confirmation."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
@@ -162,7 +162,7 @@ class MomentumDCAStrategy(AbstractStrategy):
         return eligible
 
     @classmethod
-    def from_dict(cls, params: dict[str, Any]) -> "MomentumDCAStrategy":
+    def from_dict(cls, params: dict[str, Any]) -> MomentumDCAStrategy:
         """Create strategy from parameter dict."""
         config = MomentumDCAConfig(
             fear_threshold=params.get("fear_threshold", 30),

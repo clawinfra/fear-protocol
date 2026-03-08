@@ -1,6 +1,7 @@
 """Hyperliquid spot adapter for UBTC/USDC. Ported from FearHarvester."""
 from __future__ import annotations
 
+import contextlib
 import os
 import uuid
 from decimal import Decimal
@@ -9,7 +10,6 @@ from typing import Any
 
 from fear_protocol.core.models import Balance, MarketPrice, OrderResult
 from fear_protocol.exchanges.base import AbstractExchangeAdapter
-
 
 # Hyperliquid UBTC/USDC pair constants
 UBTC_PAIR = "@142"
@@ -82,7 +82,7 @@ class HyperliquidAdapter(AbstractExchangeAdapter):
         self._info: Any = None
 
     @classmethod
-    def from_env(cls, testnet: bool = False) -> "HyperliquidAdapter":
+    def from_env(cls, testnet: bool = False) -> HyperliquidAdapter:
         """
         Create adapter by loading credentials from environment.
 
@@ -278,10 +278,8 @@ class HyperliquidAdapter(AbstractExchangeAdapter):
         elif "resting" in fill_info:
             oid = str(fill_info["resting"].get("oid", uuid.uuid4()))
             # Cancel resting order immediately
-            try:
+            with contextlib.suppress(Exception):
                 self._hl_exchange.cancel(UBTC_PAIR, int(oid))
-            except Exception:
-                pass
             return OrderResult(
                 order_id=oid,
                 status="resting",

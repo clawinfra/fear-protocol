@@ -65,10 +65,10 @@ class AbstractExchangeAdapter(ABC):
             OrderResult with fill details.
         """
 
-    def validate_order_size(self, quote_amount: Decimal) -> None:
+    def validate_order_size(self, quote_amount: Decimal) -> None:  # noqa: B027
         """Validate order size meets exchange minimums. Override in subclasses."""
         pass
 
-    def close(self) -> None:
+    def close(self) -> None:  # noqa: B027
         """Clean up connections. Override if needed."""
         pass

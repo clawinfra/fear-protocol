@@ -43,13 +43,13 @@ class BacktestReport:
         d = r.to_dict()
         lines = [
             f"# Backtest Results: {d['strategy']}",
-            f"",
+            "",
             f"**Period:** {d['start_date']} → {d['end_date']}",
-            f"",
-            f"## Performance Metrics",
-            f"",
-            f"| Metric | Value |",
-            f"|--------|-------|",
+            "",
+            "## Performance Metrics",
+            "",
+            "| Metric | Value |",
+            "|--------|-------|",
             f"| Total Return | {d['total_return_pct']:+.1f}% |",
             f"| Annualized Return | {d['annualized_return_pct']:+.1f}% |",
             f"| Sharpe Ratio | {d['sharpe_ratio']:.2f} |",
@@ -62,11 +62,11 @@ class BacktestReport:
             f"| Profit Factor | {d['profit_factor']:.2f} |",
             f"| Total Trades | {d['total_trades']} |",
             f"| Avg Hold Days | {d['avg_hold_days']:.1f} |",
-            f"",
-            f"## vs BTC Buy-and-Hold",
-            f"",
-            f"| Metric | Value |",
-            f"|--------|-------|",
+            "",
+            "## vs BTC Buy-and-Hold",
+            "",
+            "| Metric | Value |",
+            "|--------|-------|",
             f"| BTC Hold Return | {d['btc_hold_return_pct']:+.1f}% |",
             f"| Alpha | {d['alpha']:+.1f}% |",
         ]
@@ -94,9 +94,9 @@ class BacktestReport:
     def print_summary(self) -> None:
         """Print Rich terminal table output."""
         try:
+            from rich import box
             from rich.console import Console
             from rich.table import Table
-            from rich import box
 
             r = self.result
             d = r.to_dict()

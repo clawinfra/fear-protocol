@@ -3,13 +3,10 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
 from fear_protocol.core.models import (
     ActionType,
-    Balance,
     BacktestConfig,
-    MarketContext,
+    Balance,
     MarketPrice,
     OrderResult,
     Position,

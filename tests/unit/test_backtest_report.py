@@ -5,10 +5,8 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
-import pytest
-
-from fear_protocol.backtest.report import BacktestReport
 from fear_protocol.backtest.engine import BacktestEngine
+from fear_protocol.backtest.report import BacktestReport
 from fear_protocol.core.models import BacktestConfig
 from fear_protocol.strategies.fear_greed_dca import FearGreedDCAStrategy
 

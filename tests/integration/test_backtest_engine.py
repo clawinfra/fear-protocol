@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
 from fear_protocol.backtest.engine import BacktestEngine
 from fear_protocol.backtest.report import BacktestReport
 from fear_protocol.core.models import BacktestConfig
