@@ -31,7 +31,7 @@ jobs:
         run: uv run ruff check fear_protocol tests
 
       - name: Type check (pyright)
-        run: uv run pyright fear_protocol
+        run: uv run --with pyright pyright fear_protocol
 
       - name: Run tests
         run: uv run pytest tests/ -v --tb=short

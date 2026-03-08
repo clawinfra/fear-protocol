@@ -1,5 +1,6 @@
 """Cached historical data provider for backtesting."""
 from __future__ import annotations
+from typing import cast
 
 import json
 import time
@@ -72,7 +73,7 @@ class HistoricalDataProvider:
         Returns:
             Dict mapping 'YYYY-MM-DD' → F&G value (int).
         """
-        cached = self._load_cache("fear_greed_history")
+        cached: dict[str, int] | None = cast(dict[str, int] | None, self._load_cache("fear_greed_history"))
         if cached is None:
             resp = requests.get(
                 "https://api.alternative.me/fng/",
@@ -110,7 +111,7 @@ class HistoricalDataProvider:
             Dict mapping 'YYYY-MM-DD' → close price.
         """
         cache_key = f"prices_{symbol}"
-        cached = self._load_cache(cache_key)
+        cached: dict[str, str] | None = cast(dict[str, str] | None, self._load_cache(cache_key))
         if cached is None:
             from datetime import timedelta
 
