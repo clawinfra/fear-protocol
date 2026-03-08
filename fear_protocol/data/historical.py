@@ -1,12 +1,12 @@
 """Cached historical data provider for backtesting."""
 from __future__ import annotations
-from typing import cast
 
 import json
 import time
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
+from typing import cast
 
 import requests
 
