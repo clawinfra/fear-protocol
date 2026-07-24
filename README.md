@@ -66,7 +66,7 @@ All commands support `--json` for machine-readable output (ideal for agent integ
 ```bash
 fear-protocol signal --json
 fear-protocol status --json
-fear-protocol backtest run --start 2024-01-01 --end 2024-12-31 --json
+fear-protocol backtest --start 2024-01-01 --end 2024-12-31 --json
 ```
 
 ## Configuration
